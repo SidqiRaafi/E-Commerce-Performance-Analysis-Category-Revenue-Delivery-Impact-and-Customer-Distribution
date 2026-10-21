@@ -1,0 +1,3 @@
+link dashboard:"https://sidqi-brazilian-ecommerce-performance-analysis.streamlit.app/"
+link github:"https://github.com/SidqiRaafi/E-Commerce-Performance-Analysis-Category-Revenue-Delivery-Impact-and-Customer-Distribution"
+link notebook:"https://colab.research.google.com/drive/13Nj4NsBpDb5i4wMpQAEitYqkjxF2xI6T?usp=sharing"
