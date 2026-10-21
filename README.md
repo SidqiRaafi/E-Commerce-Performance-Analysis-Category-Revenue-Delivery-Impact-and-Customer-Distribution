@@ -1,11 +1,11 @@
 # Brazilian E-Commerce Performance Analysis
 
-[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](#)
-[![Python](https://img.shields.io/badge/Python-Data%20Analysis-3776AB?logo=python&logoColor=white)](#)
-[![Pandas](https://img.shields.io/badge/Pandas-Data%20Wrangling-150458?logo=pandas&logoColor=white)](#)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://sidqi-brazilian-ecommerce-performance-analysis.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-Data%20Analysis-3776AB?logo=python&logoColor=white)](#5-technology-stack--tooling)
+[![Pandas](https://img.shields.io/badge/Pandas-Data%20Wrangling-150458?logo=pandas&logoColor=white)](#2-data-wrangling--preprocessing-python)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An end-to-end data analytics and business intelligence case study evaluating the operational performance of Olist, a Brazilian E-Commerce platform. This project covers extensive data wrangling, exploratory data analysis (EDA), advanced geospatial mapping, and an interactive dashboard deployment using Streamlit.
+An end-to-end data analytics case study on the operational performance of Olist, a Brazilian e-commerce platform. The project covers data wrangling, exploratory data analysis (EDA), geospatial mapping of customers, and an interactive dashboard deployed with Streamlit.
 
 📊 **[Live Interactive Dashboard (Streamlit Cloud)](https://sidqi-brazilian-ecommerce-performance-analysis.streamlit.app/)**  
 📊 **[Exploratory Data Analysis Notebook](notebook.ipynb)**
@@ -13,60 +13,68 @@ An end-to-end data analytics and business intelligence case study evaluating the
 ---
 
 ## 1. Executive Summary & Business Problem
-Olist recorded **96,478 unique orders** generating **R$ 13.22M** in revenue between 2016 and 2018. The objective of this project is to analyze the platform's historical transaction data to optimize product catalogs, evaluate logistics performance, and map customer demographics.
+The dataset contains **96,478 delivered orders** with **R$ 13.22M** in item revenue (product price, excluding freight) between 2016 and 2018. The project analyzes this transaction history to review the product catalog, measure delivery performance, and map where customers are located.
 
-**SMART Business Questions:**
-1. **Revenue Contribution:** Which product categories generated the highest and lowest total gross revenue (BRL) over the 2016–2018 period, and how should we optimize the catalog based on this?
-2. **Logistics & Reputation:** How severely does a missed delivery estimate impact the average customer review score (scale 1-5), and what is the current failure rate of our logistics network?
-3. **Geospatial Demographics (Advanced Analysis):** What is the geographical distribution of unique customers across Brazilian states, and how should this dictate fulfillment center placements to optimize last-mile delivery?
+**Business Questions:**
+1. **Revenue Contribution:** Which product categories generated the highest and lowest total revenue (BRL)? The notebook answers this for 2017, and the dashboard shows any period.
+2. **Delivery & Reviews:** How much lower is the average customer review score (scale 1-5) when an order arrives after its estimated delivery date, and what share of orders is late? (2016-2018)
+3. **Geospatial Distribution (Advanced Analysis):** How are customers distributed across Brazilian states and zip codes, and what does this suggest for fulfillment center placement?
 
 ---
 
 ## 2. Data Wrangling & Preprocessing (Python)
-The raw data consisted of multiple relational tables (customers, orders, items, products, reviews, and geolocation) requiring extensive preprocessing before analysis.
+The raw data consists of 9 relational tables (customers, orders, items, payments, reviews, products, sellers, category translation, and geolocation).
 
 ### Data Quality & Processing Logic
-* **Gathering & Merging:** Consolidated 5+ relational datasets using SQL-style `pd.merge()` operations to create a unified master dataframe.
-* **Category Translation (`product_category_name_english`):** Standardized product category text from Portuguese to English using the provided `product_category_name_translation.csv` mapping.
-* **Missing Value Handling:** 
-  * Imputed or dropped missing logistical timestamps (`order_delivered_customer_date`) primarily associated with formally canceled or lost orders.
-  * Handled missing product attributes (weight, dimensions) using median imputation to preserve row integrity.
-* **Deduplication & Geospatial Cleaning:** Removed duplicate spatial coordinates and invalid zip code prefixes in the geolocation dataset to ensure accurate plotting.
+* **Gathering & Merging:** Merged orders, items, products, reviews, customers, and geolocation with `pd.merge()` into a single dataset (`dashboard/main_data.csv`) for the dashboard.
+* **Category Translation (`product_category_name_english`):** Translated product categories from Portuguese to English using `product_category_name_translation.csv`.
+* **Data Types:** Converted the order date columns to `datetime`.
+* **Missing Values:**
+  * Limited the analysis to orders with status `delivered`, since missing delivery dates mainly belong to canceled or unavailable orders.
+  * Filled 610 missing product categories with "Unknown", filled missing product metadata with 0, and dropped 2 rows without package dimensions.
+* **Duplicates:** Removed 261,831 duplicate rows from the geolocation table.
+* **Outliers:** Kept 8,427 price outliers (7.48%), since they are valid high-value purchases.
 
 ---
 
 ## 3. Exploratory Data Analysis & Business Dashboard
 ![Dashboard](dashboard/images/kpi.png)
-Designed an interactive Streamlit dashboard featuring Gestalt visual principles, executive scorecards, and advanced spatial plotting.
+The Streamlit dashboard has KPI cards, filters for period, delivery status, and state, and an insight panel next to each chart. All charts and insights update with the filters. *The dashboard text is in Indonesian.*
 
 ### A. Category Revenue Performance
 ![Top Categories](dashboard/images/category_revenue.png)
-* **Top Revenue Drivers:** The `health_beauty` category leads the platform with **R$ 1.23M** in cumulative sales, followed closely by `watches_gifts` (R$ 1.17M) and `bed_bath_table` (R$ 1.02M).
-* **Underperforming Segments:** Niche or service-oriented categories like `security_and_services` generated a negligible contribution of only **R$ 283** over the entire three-year period.
+* **Highest Revenue:** Over 2016-2018, `health_beauty` leads with **R$ 1.23M**, followed by `watches_gifts` (R$ 1.17M) and `bed_bath_table` (R$ 1.02M). In 2017 alone, `bed_bath_table` leads with R$ 490.6K.
+* **Lowest Revenue:** Categories such as `security_and_services` earned only **R$ 283** in total over the three years.
 
 ### B. The Cost of Logistical Delays
 ![Logistics Impact](dashboard/images/logistics_impact.png)
-* **Baseline Satisfaction:** Orders completed on or before the estimated delivery date account for **91.9%** (96.5K orders) of total volume, maintaining a solid average review score of **4.29 / 5.00**.
-* **Reputation Penalty:** The **7,826 orders (8.1%)** that missed their delivery estimates caused average review scores to plummet drastically to **2.57 / 5.00**.
+* **On-time orders:** **91.9%** (88,652 orders) arrived on or before the estimated delivery date, with an average review score of **4.29 / 5.00**.
+* **Late orders:** The **7,826 orders (8.1%)** that missed the estimate had a much lower average review score of **2.57 / 5.00**.
 
-### C. Advanced Analysis: Geospatial Demographics
+### C. Advanced Analysis: Geospatial Distribution
 ![Geospatial Mapping](dashboard/images/geospatial_mapping.png)
-* **Coastal Dominance:** Geospatial scatter plotting reveals massive market polarization. **São Paulo (SP)** controls absolute market share with **40,501 customers**, followed by Rio de Janeiro (RJ) and Minas Gerais (MG).
-* **Topography Challenges:** The northern and western regions (Amazon basin) exhibit heavily dispersed, low-density customer distribution, representing high-cost, inefficient logistical zones.
+* **Customer Concentration:** **São Paulo (SP)** has the most customers (**40,501**), followed by Rio de Janeiro (RJ, 12,350) and Minas Gerais (MG, 11,354). Together these three states hold about two-thirds of all customers.
+* **Sparse Regions:** The northern and western regions (Amazon basin) have far fewer customers, spread over long distances. This likely makes delivery harder there, although the data has no cost information to confirm it.
 
 ---
 
 ## 4. Conclusion & Strategic Recommendations
 
 ### Conclusions
-1. The platform's revenue is heavily concentrated in lifestyle, personal care, and home goods, while micro-categories (e.g., security services, CDs/DVDs) bloat the catalog without generating meaningful revenue.
-2. Logistics directly dictate brand reputation. A delayed shipment essentially guarantees a negative customer review (sub-3.0 score).
-3. The customer base is heavily centralized in the Southeastern coastal states (SP, RJ, MG), whereas inland and northern territories lack the density to support organic logistical efficiency.
+1. Revenue is concentrated in home, lifestyle, and personal care categories, while some categories (e.g., security services, CDs/DVDs) earn almost nothing.
+2. Late deliveries go together with much lower review scores (2.57 vs 4.29 on average).
+3. Customers are concentrated in the southeastern states (SP, RJ, MG), and are much sparser in the north and west.
 
 ### Business Recommendations (Action Items)
-* **Catalog Optimization:** Reallocate digital marketing spend heavily toward the Top 5 categories (`health_beauty`, `watches_gifts`, etc.). Conduct an operational audit on bottom-tier categories to deprecate unprofitable segments and reduce database bloat.
-* **Logistics SLA Re-evaluation:** Management must recalibrate the estimated delivery algorithm and penalize or replace underperforming third-party logistics (3PL) carriers responsible for the 7,826 delayed shipments.
-* **Fulfillment Center Placement:** Establish localized warehouse hubs specifically within the SP-RJ-MG triangle. This will drastically reduce last-mile delivery costs for the core customer base while sustaining the 4.29 average satisfaction rating.
+* **Catalog Optimization:** Prioritize marketing budget and stock for the top categories (`health_beauty`, `watches_gifts`, etc.), and review the profitability of the lowest categories before deciding whether to keep them.
+* **Delivery SLA Review:** Review the delivery estimate logic and the performance of carriers on late orders, with the aim of reducing the 8.1% late rate.
+* **Fulfillment Center Placement:** Consider a distribution hub in the SP-RJ-MG area to shorten delivery times for the core customer base, after checking that the cost is justified.
+
+### Notes & Limitations
+* The review score comparison shows an association, not a proven cause. Other factors, such as product quality, were not analyzed.
+* The data has no carrier or cost information, so the delivery and hub recommendations are hypotheses to test.
+* Customer counts use `customer_id`, which is assigned per order, so they are closer to order counts than to unique people.
+* 2016 has very little data (about 0.3% of revenue), so year-to-year comparisons should be read with care.
 
 ---
 
@@ -74,10 +82,10 @@ Designed an interactive Streamlit dashboard featuring Gestalt visual principles,
 
 | Domain | Technology / Tool | Application |
 | :--- | :--- | :--- |
-| **Data Wrangling** | Python, Pandas, NumPy | Data cleaning, type coercion, relational merging |
-| **Data Visualization** | Matplotlib, Seaborn | Exploratory static visualizations |
-| **Advanced Analysis** | Python Geospatial Logic | Coordinate mapping (Latitude/Longitude density) |
-| **Business Intelligence** | Streamlit | Interactive dashboard deployment and web hosting |
+| **Data Wrangling** | Python, Pandas, NumPy | Data cleaning, type conversion, merging tables |
+| **Data Visualization** | Matplotlib, Seaborn | Charts in the notebook and dashboard |
+| **Geospatial Analysis** | Pandas, Matplotlib | Customer map from zip code coordinates |
+| **Dashboard** | Streamlit, Streamlit Cloud | Interactive dashboard and hosting |
 
 ---
 
@@ -88,7 +96,8 @@ Designed an interactive Streamlit dashboard featuring Gestalt visual principles,
 brazilian-ecommerce-performance-analysis
 ├── dashboard
 │   ├── dashboard.py
-│   └── main_data.csv
+│   ├── main_data.csv
+│   └── images
 ├── data
 │   ├── customers_dataset.csv
 │   ├── geolocation_dataset.csv
@@ -99,25 +108,43 @@ brazilian-ecommerce-performance-analysis
 │   ├── product_category_name_translation.csv
 │   ├── products_dataset.csv
 │   └── sellers_dataset.csv
+├── LICENSE
 ├── notebook.ipynb
 ├── README.md
-├── requirements.txt
-└── url.txt
+└── requirements.txt
 ```
 
 ### Local Deployment Instructions
 **1. Clone the repository:**
 ```bash
-git clone [https://github.com/SidqiRaafi/brazilian-ecommerce-performance-analysis]
-cd https://github.com/SidqiRaafi/brazilian-ecommerce-performance-analysis
+git clone https://github.com/SidqiRaafi/brazilian-ecommerce-performance-analysis.git
+cd brazilian-ecommerce-performance-analysis
 ```
 
-**2. Install Dependencies:**
+**2. (Optional) Create a virtual environment:**
+```bash
+python -m venv venv
+# Windows: .\venv\Scripts\activate
+# macOS/Linux: source venv/bin/activate
+```
+
+**3. Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-**3. Run the streamlit app:**
+**4. Run the Streamlit app:**
 ```bash
 streamlit run dashboard/dashboard.py
 ```
+
+To rerun the analysis, open `notebook.ipynb` in Jupyter or Google Colab with the `data` folder in the same directory. The last section of the notebook regenerates `dashboard/main_data.csv`.
+
+---
+
+## 7. Data Source & License
+Data: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) on Kaggle. Please check the dataset's license terms before reusing it.
+
+Code: released under the [MIT License](LICENSE).
+
+**Author:** Sidqi Raafi Al Fauzan - [GitHub](https://github.com/SidqiRaafi)
